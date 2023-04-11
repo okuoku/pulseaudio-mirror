@@ -731,7 +731,7 @@ snd_pcm_t *pa_alsa_open_by_device_string(
             if (!pa_startswith(d, "plug:") && !pa_startswith(d, "plughw:")) {
                 char *t;
 
-                t = pa_sprintf_malloc("plug:%s", d);
+                t = pa_sprintf_malloc("plug:SLAVE='%s'", d);
                 pa_xfree(d);
                 d = t;
 
@@ -1180,7 +1180,7 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
 
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
-            pa_log(ngettext("snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
+            pa_log_debug(ngettext("snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
                             "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
                             "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
                             "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
@@ -1189,7 +1189,7 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
                    (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
                    pa_strnull(dn));
             pa_xfree(dn);
-            pa_alsa_dump(PA_LOG_ERROR, pcm);
+            pa_alsa_dump(PA_LOG_DEBUG, pcm);
         } PA_ONCE_END;
 
         /* Mhmm, let's try not to fail completely */
@@ -1246,7 +1246,7 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes
 
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
-            pa_log(ngettext("snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s%lu ms).\n"
+            pa_log_debug(ngettext("snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s%lu ms).\n"
                             "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
                             "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
                             "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
@@ -1256,7 +1256,7 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes
                    (unsigned long) (pa_bytes_to_usec(abs_k, ss) / PA_USEC_PER_MSEC),
                    pa_strnull(dn));
             pa_xfree(dn);
-            pa_alsa_dump(PA_LOG_ERROR, pcm);
+            pa_alsa_dump(PA_LOG_DEBUG, pcm);
         } PA_ONCE_END;
 
         /* Mhmm, let's try not to fail completely */
@@ -1274,7 +1274,7 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes
 
             PA_ONCE_BEGIN {
                 char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
-                pa_log(ngettext("snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
+                pa_log_debug(ngettext("snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
                                 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
                                 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
                                 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
@@ -1283,7 +1283,7 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes
                        (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
                        pa_strnull(dn));
                 pa_xfree(dn);
-                pa_alsa_dump(PA_LOG_ERROR, pcm);
+                pa_alsa_dump(PA_LOG_DEBUG, pcm);
             } PA_ONCE_END;
 
             /* Mhmm, let's try not to fail completely */
@@ -1336,7 +1336,7 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
                     k >= pa_bytes_per_second(ss)*10))
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
-            pa_log(ngettext("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
+            pa_log_debug(ngettext("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
                             "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
                             "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
                             "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
@@ -1345,7 +1345,7 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
                    (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
                    pa_strnull(dn));
             pa_xfree(dn);
-            pa_alsa_dump(PA_LOG_ERROR, pcm);
+            pa_alsa_dump(PA_LOG_DEBUG, pcm);
         } PA_ONCE_END;
 
     return r;
@@ -1635,8 +1635,8 @@ static snd_mixer_elem_t *pa_alsa_mixer_find(snd_mixer_t *mixer,
     return NULL;
 }
 
-snd_mixer_elem_t *pa_alsa_mixer_find_card(snd_mixer_t *mixer, const char *name, unsigned int device) {
-    return pa_alsa_mixer_find(mixer, SND_CTL_ELEM_IFACE_CARD, name, 0, device);
+snd_mixer_elem_t *pa_alsa_mixer_find_card(snd_mixer_t *mixer, struct pa_alsa_mixer_id *alsa_id, unsigned int device) {
+    return pa_alsa_mixer_find(mixer, SND_CTL_ELEM_IFACE_CARD, alsa_id->name, alsa_id->index, device);
 }
 
 snd_mixer_elem_t *pa_alsa_mixer_find_pcm(snd_mixer_t *mixer, const char *name, unsigned int device) {
@@ -1687,14 +1687,14 @@ static int mixer_class_event(snd_mixer_class_t *class, unsigned int mask,
     return 0;
 }
 
-static int prepare_mixer(snd_mixer_t *mixer, const char *dev) {
+static int prepare_mixer(snd_mixer_t *mixer, const char *dev, snd_hctl_t *hctl) {
     int err;
     snd_mixer_class_t *class;
 
     pa_assert(mixer);
     pa_assert(dev);
 
-    if ((err = snd_mixer_attach(mixer, dev)) < 0) {
+    if ((err = snd_mixer_attach_hctl(mixer, hctl)) < 0) {
         pa_log_info("Unable to attach to mixer %s: %s", dev, pa_alsa_strerror(err));
         return -1;
     }
@@ -1733,37 +1733,29 @@ snd_mixer_t *pa_alsa_open_mixer(pa_hashmap *mixers, int alsa_card_index, bool pr
     return m;
 }
 
+pa_alsa_mixer *pa_alsa_create_mixer(pa_hashmap *mixers, const char *dev, snd_mixer_t *m, bool probe) {
+    pa_alsa_mixer *pm;
+
+    pm = pa_xnew0(pa_alsa_mixer, 1);
+    if (pm == NULL)
+        return NULL;
+
+    pm->used_for_probe_only = probe;
+    pm->mixer_handle = m;
+    pa_hashmap_put(mixers, pa_xstrdup(dev), pm);
+    return pm;
+}
+
 snd_mixer_t *pa_alsa_open_mixer_by_name(pa_hashmap *mixers, const char *dev, bool probe) {
     int err;
     snd_mixer_t *m;
+    snd_hctl_t *hctl;
     pa_alsa_mixer *pm;
-    char *dev2;
-    void *state;
 
     pa_assert(mixers);
     pa_assert(dev);
 
     pm = pa_hashmap_get(mixers, dev);
-
-    /* The quick card number/index lookup (hw:#)
-     * We already know the card number/index, thus use the mixer
-     * from the cache at first.
-     */
-    if (!pm && pa_strneq(dev, "hw:", 3)) {
-        const char *s = dev + 3;
-        int card_index;
-        while (*s && *s >= 0 && *s <= '9') s++;
-        if (*s == '\0' && pa_atoi(dev + 3, &card_index) >= 0) {
-            PA_HASHMAP_FOREACH_KV(dev2, pm, mixers, state) {
-                if (pm->card_index == card_index) {
-                    dev = dev2;
-                    pm = pa_hashmap_get(mixers, dev);
-                    break;
-                }
-            }
-        }
-    }
-
     if (pm) {
         if (!probe)
             pm->used_for_probe_only = false;
@@ -1775,27 +1767,55 @@ snd_mixer_t *pa_alsa_open_mixer_by_name(pa_hashmap *mixers, const char *dev, boo
         return NULL;
     }
 
-    if (prepare_mixer(m, dev) >= 0) {
-        pm = pa_xnew0(pa_alsa_mixer, 1);
-        if (pm) {
-            snd_hctl_t *hctl;
-            pm->card_index = -1;
-            /* determine the ALSA card number (index) and store it to card_index */
-            err = snd_mixer_get_hctl(m, dev, &hctl);
-            if (err >= 0) {
-                snd_ctl_card_info_t *info;
-                snd_ctl_card_info_alloca(&info);
-                err = snd_ctl_card_info(snd_hctl_ctl(hctl), info);
-                if (err >= 0)
-                    pm->card_index = snd_ctl_card_info_get_card(info);
-            }
-            pm->used_for_probe_only = probe;
-            pm->mixer_handle = m;
-            pa_hashmap_put(mixers, pa_xstrdup(dev), pm);
-            return m;
-        }
+    err = snd_hctl_open(&hctl, dev, 0);
+    if (err < 0) {
+        pa_log("Error opening hctl device: %s", pa_alsa_strerror(err));
+        goto __close;
     }
 
+    if (prepare_mixer(m, dev, hctl) >= 0) {
+        /* get the ALSA card number (index) and ID (alias) and create two identical mixers */
+        char *p, *dev2, *dev_idx, *dev_id;
+        snd_ctl_card_info_t *info;
+        snd_ctl_card_info_alloca(&info);
+        err = snd_ctl_card_info(snd_hctl_ctl(hctl), info);
+        if (err < 0)
+            goto __std;
+        dev2 = pa_xstrdup(dev);
+        if (dev2 == NULL)
+            goto __close;
+        p = strchr(dev2, ':');
+        /* sanity check - only hw: devices */
+        if (p == NULL || (p - dev2) < 2 || !pa_strneq(p - 2, "hw:", 3)) {
+            pa_xfree(dev2);
+            goto __std;
+        }
+        *p = '\0';
+        dev_idx = pa_sprintf_malloc("%s:%u", dev2, snd_ctl_card_info_get_card(info));
+        dev_id = pa_sprintf_malloc("%s:%s", dev2, snd_ctl_card_info_get_id(info));
+        pa_log_debug("ALSA alias mixers: %s = %s", dev_idx, dev_id);
+        if (dev_idx && dev_id && (strcmp(dev, dev_idx) == 0 || strcmp(dev, dev_id) == 0)) {
+            pm = pa_alsa_create_mixer(mixers, dev_idx, m, probe);
+            if (pm) {
+                pa_alsa_mixer *pm2;
+                pm2 = pa_alsa_create_mixer(mixers, dev_id, m, probe);
+                if (pm2) {
+                    pm->alias = pm2;
+                    pm2->alias = pm;
+                }
+            }
+        }
+        pa_xfree(dev_id);
+        pa_xfree(dev_idx);
+        pa_xfree(dev2);
+   __std:
+        if (pm == NULL)
+            pm = pa_alsa_create_mixer(mixers, dev, m, probe);
+        if (pm)
+            return m;
+    }
+
+__close:
     snd_mixer_close(m);
     return NULL;
 }
@@ -1836,8 +1856,10 @@ void pa_alsa_mixer_free(pa_alsa_mixer *mixer)
 {
     if (mixer->fdl)
         pa_alsa_fdlist_free(mixer->fdl);
-    if (mixer->mixer_handle)
+    if (mixer->mixer_handle && mixer->alias == NULL)
         snd_mixer_close(mixer->mixer_handle);
+    if (mixer->alias)
+        mixer->alias->alias = NULL;
     pa_xfree(mixer);
 }
 
